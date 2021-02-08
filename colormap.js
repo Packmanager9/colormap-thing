@@ -777,7 +777,7 @@ window.addEventListener('DOMContentLoaded', (event) => {
         canvas.style.background = style
         window.setInterval(function () {
             main()
-        }, 10000)
+        }, 100000)
         document.addEventListener('keydown', (event) => {
             keysPressed[event.key] = true;
         });
@@ -955,12 +955,6 @@ window.addEventListener('DOMContentLoaded', (event) => {
         });
 
 
-      function colorDistance(thiser, target) {
-            let rk = (thiser.r - target.r) * (thiser.r - target.r)
-            let gk = (thiser.g - target.g) * (thiser.g - target.g)
-            let bk = (thiser.b - target.b) * (thiser.b - target.b)
-            return Math.sqrt(rk + bk + gk)
-        }
 
         let colors = []
 
@@ -975,7 +969,9 @@ window.addEventListener('DOMContentLoaded', (event) => {
         const imageData = canvas_context.getImageData(0, 0, canvas.width, canvas.height);
         const data = imageData.data;
         for (var i = 0; i < data.length; i += 4) {
+            if(data[i+3]!=0){
                 colors.push([data[i],data[i+1], data[i+2]])
+            }
         }
         let hash = {}
         for (let g = 0; colors.length > g; g++) {
@@ -990,12 +986,13 @@ window.addEventListener('DOMContentLoaded', (event) => {
         }
         let bunker = 0
         for (var i = 0, keys = Object.keys(hash), ii = keys.length; i < ii; i++) {
-            bunker += parseInt(hash[keys[i]], 10)
+            bunker += parseFloat(hash[keys[i]], 10)
         }
         for (var i = 0, keys = Object.keys(hash), ii = keys.length; i < ii; i++) {
             hash[keys[i]] /= bunker
             hash[keys[i]] *= 100
-            if(hash[keys[i]] < 100/keys.length){
+            if(parseFloat(hash[keys[i]],10) <150/ii){   //150 is arbitrary, adjust this up for fewer colors, and down for more (0 is all colors)
+                // console.log(hash[keys[i]], keys.length)
                 delete hash[keys[i]];
             }
         }
@@ -1003,10 +1000,14 @@ window.addEventListener('DOMContentLoaded', (event) => {
         for (var i = 0; i < data.length; i += 4) {
             let minimum = 255*255*255
             let colorer = {}
+            colorer.r = 0
+            colorer.g = 0
+            colorer.b = 0
             for (var h = 0, keys = Object.keys(hash), ii = keys.length; h < ii; h++) {
                 let color = new Color("#FFFFFF", data[i], data[i+1], data[i+2])
-                let color2 = new Color("#FFFFFF", parseInt(keys[h].split(',')[0],10), parseInt(keys[h].split(',')[1],10), parseInt(keys[h].split(',')[2],10),)
+                let color2 = new Color("#FFFFFF", parseInt(keys[h].split(',')[0],10), parseInt(keys[h].split(',')[1],10), parseInt(keys[h].split(',')[2],10))
                 let dis = color.colorDistance(color2)
+                // console.log("dis",dis,"min",minimum)
                 if(dis<=minimum){
                     minimum = dis
                     colorer.r = color2.r
@@ -1017,7 +1018,7 @@ window.addEventListener('DOMContentLoaded', (event) => {
             data[i]  = colorer.r  // red
             data[i + 1] = colorer.g   // green
             data[i + 2] = colorer.b // blue
-            console.log(colorer)
+            // console.log(colorer)
         }
         canvas_context.putImageData(imageData, 0, 0);
     }
